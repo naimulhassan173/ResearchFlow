@@ -119,6 +119,22 @@ export class GroupsService {
     });
     return this.get(id);
   }
+  async list(q: GroupPaginationDto) {
+    const [groups, total] = await this.source
+      .getRepository(ResearchGroup)
+      .findAndCount({
+        where: { archivedAt: IsNull() },
+        order: { createdAt: "DESC", id: "ASC" },
+        skip: (q.page - 1) * q.limit,
+        take: q.limit,
+      });
+    return {
+      items: await Promise.all(groups.map((g) => this.get(g.id))),
+      total,
+      page: q.page,
+      limit: q.limit,
+    };
+  }
   async mine(actor: AuthUser) {
     this.requireStudent(actor);
     const member = await this.source

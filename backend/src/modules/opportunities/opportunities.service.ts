@@ -71,12 +71,10 @@ export class OpportunitiesService {
       throw new ForbiddenException(
         "Only supervisors can manage research opportunities",
       );
-    const user = await manager
-      .getRepository(User)
-      .findOne({
-        where: { id: actor.id },
-        lock: { mode: "pessimistic_write" },
-      });
+    const user = await manager.getRepository(User).findOne({
+      where: { id: actor.id },
+      lock: { mode: "pessimistic_write" },
+    });
     if (!user?.isActive || user.role !== UserRole.SUPERVISOR)
       throw new ForbiddenException();
   }
@@ -231,6 +229,37 @@ export class OpportunitiesService {
       }
       if (dto.deadline !== undefined) post.deadline = this.date(dto.deadline);
       await this.assignTags(manager, post, dto);
+    });
+  }
+  async remove(actor: AuthUser, id: string) {
+    return this.source.transaction(async (manager) => {
+      await this.supervisor(manager, actor);
+      const repo = manager.getRepository(Opportunity);
+      const post = await repo.findOne({
+        where: { id },
+        lock: { mode: "pessimistic_write" },
+      });
+      if (!post) throw new NotFoundException("Opportunity not found");
+      if (post.supervisorId !== actor.id)
+        throw new ForbiddenException(
+          "Only the owner can delete this opportunity",
+        );
+      if (post.reservedPlaces > 0)
+        throw new ConflictException(
+          "End active supervision before deleting this opportunity",
+        );
+      const [refs] = await manager.query(
+        `SELECT EXISTS(SELECT 1 FROM selection_requests WHERE opportunity_id=$1)
+        OR EXISTS(SELECT 1 FROM suggestions WHERE opportunity_id=$1)
+        OR EXISTS(SELECT 1 FROM supervisions WHERE opportunity_id=$1) AS used`,
+        [id],
+      );
+      if (refs.used)
+        throw new ConflictException(
+          "This opportunity has research history; close recruitment instead",
+        );
+      await repo.remove(post);
+      return { message: "Opportunity deleted" };
     });
   }
   async status(actor: AuthUser, id: string, status: OpportunityStatus) {

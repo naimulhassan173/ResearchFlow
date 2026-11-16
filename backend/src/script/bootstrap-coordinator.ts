@@ -2,7 +2,7 @@ import "dotenv/config";
 import { DataSource } from "typeorm";
 import { plainToInstance } from "class-transformer";
 import { validate } from "class-validator";
-import * as argon2 from "argon2";
+import { hashPassword } from "../common/helpers/password.helper";
 import { dataSourceOptions } from "../config/database.config";
 import { AccountDto } from "../modules/accounts/dto/account.dto";
 import { User } from "../modules/accounts/entities/user.entity";
@@ -20,7 +20,7 @@ async function bootstrapCoordinator() {
       "Set valid COORDINATOR_NAME, COORDINATOR_EMAIL and a strong COORDINATOR_PASSWORD in your local .env",
     );
   }
-  const passwordHash = await argon2.hash(dto.password);
+  const passwordHash = await hashPassword(dto.password);
   const source = new DataSource(dataSourceOptions);
   try {
     await source.initialize();

@@ -6,7 +6,7 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { IsNull, Repository } from "typeorm";
-import * as argon2 from "argon2";
+import { hashPassword } from "../../common/helpers/password.helper";
 import { User } from "./entities/user.entity";
 import { AccountDto } from "./dto/account.dto";
 import { Profile } from "../profiles/entities/profile.entity";
@@ -14,6 +14,8 @@ import { AuthUser } from "../../common/interfaces/auth-user.interface";
 import { UserRole } from "./enums/user_role.enum";
 import { GroupMember } from "../groups/entities/group-member.entity";
 import { Supervision } from "../selection/entities/supervision.entity";
+import { UpdateAccountDto } from "./dto/update-account.dto";
+import { GroupPaginationDto } from "../groups/dto/group.dto";
 @Injectable()
 export class AccountsService {
   constructor(
@@ -23,7 +25,7 @@ export class AccountsService {
     const email = dto.email.trim().toLowerCase();
     if (await this.users.findOneBy({ email }))
       throw new ConflictException("Account with this email already exists");
-    const passwordHash = await argon2.hash(dto.password);
+    const passwordHash = await hashPassword(dto.password);
     try {
       return await this.users.manager.transaction(async (manager) => {
         const users = manager.getRepository(User);
@@ -87,6 +89,77 @@ export class AccountsService {
         message: "Role updated; the user must log in again",
         user: this.safeUser(user),
       };
+    });
+  }
+  private requireOwnerOrCoordinator(actor: AuthUser, id: string) {
+    if (actor.id !== id && actor.role !== UserRole.COORDINATOR)
+      throw new ForbiddenException(
+        "Only the account owner or coordinator can access this account",
+      );
+  }
+  async list(q: GroupPaginationDto) {
+    const [rows, total] = await this.users.findAndCount({
+      order: { createdAt: "DESC", id: "ASC" },
+      skip: (q.page - 1) * q.limit,
+      take: q.limit,
+    });
+    return {
+      items: rows.map((u) => this.safeUser(u)),
+      total,
+      page: q.page,
+      limit: q.limit,
+    };
+  }
+  async get(actor: AuthUser, id: string) {
+    this.requireOwnerOrCoordinator(actor, id);
+    const user = await this.users.findOneBy({ id });
+    if (!user) throw new NotFoundException("Account not found");
+    return this.safeUser(user);
+  }
+  async update(actor: AuthUser, id: string, dto: UpdateAccountDto) {
+    this.requireOwnerOrCoordinator(actor, id);
+    return this.users.manager.transaction(async (manager) => {
+      const repo = manager.getRepository(User);
+      const user = await repo.findOne({
+        where: { id },
+        lock: { mode: "pessimistic_write" },
+      });
+      if (!user) throw new NotFoundException("Account not found");
+      if (dto.fullName !== undefined) user.fullName = dto.fullName;
+      if (dto.email !== undefined) user.email = dto.email;
+      await repo.save(user);
+      return this.safeUser(user);
+    });
+  }
+  async deactivate(actor: AuthUser, id: string) {
+    if (actor.role !== UserRole.COORDINATOR || actor.id === id)
+      throw new ForbiddenException(
+        "A coordinator can deactivate another account only",
+      );
+    return this.users.manager.transaction(async (manager) => {
+      const repo = manager.getRepository(User);
+      const user = await repo.findOne({
+        where: { id },
+        lock: { mode: "pessimistic_write" },
+      });
+      if (!user) throw new NotFoundException("Account not found");
+      if (
+        (await manager
+          .getRepository(GroupMember)
+          .existsBy({ userId: id, leftAt: IsNull() })) ||
+        (await manager
+          .getRepository(Supervision)
+          .existsBy({ supervisorId: id, endedAt: IsNull() }))
+      )
+        throw new ConflictException(
+          "Leave the active group or end supervision before deactivating this account",
+        );
+      if (user.isActive) {
+        user.isActive = false;
+        user.tokenVersion += 1;
+        await repo.save(user);
+      }
+      return { message: "Account deactivated", user: this.safeUser(user) };
     });
   }
   safeUser(user: User) {

@@ -13,6 +13,7 @@ Send 01–14 in order. Supervisor login stores its token and ID. Creating the po
 | Method | Path | Purpose |
 | --- | --- | --- |
 | POST | /opportunities | Supervisor creates a draft |
+| DELETE | /opportunities/:id | Owner deletes an unused post; referenced posts return 409 |
 | GET | /opportunities/mine | Supervisor's own drafts, open posts and closed history |
 | GET | /opportunities | Open, unexpired posts with remaining places and active supervisor owners |
 | GET | /opportunities/:id | Owner can read drafts; others can read previously opened posts of active supervisors |
@@ -36,4 +37,4 @@ Directory filters: `researchInterest=NLP`, `skill=Python`, `supervisorId=<UUID>`
 | src/database/migrations/1794860000000-CreateOpportunities.ts | Create post, area-tag and required/preferred-skill join tables |
 | test/opportunities.postgres.test.cjs | Exercise real PostgreSQL queries and permission/state rules |
 
-Research areas reuse `research_interests`; both skill lists reuse `skills`. Transactions lock the owner and post during changes. SQL constraints reject invalid place counts and inconsistent publication states. There is no hard-delete endpoint; close a published post to retain its context.
+Research areas reuse `research_interests`; both skill lists reuse `skills`. Transactions lock the owner and post during changes. SQL constraints reject invalid place counts and inconsistent publication states. The owner can delete an unused post with DELETE /opportunities/:id. Posts with reservations or research-history references return 409; close recruitment to keep their history.

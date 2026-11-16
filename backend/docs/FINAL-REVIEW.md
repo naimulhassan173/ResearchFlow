@@ -1,6 +1,6 @@
 # Demo checklist
 
-The backend build passed and the code was pushed to GitHub. Automated checks passed 151 tests: 38 HTTP/validation tests and 113 PostgreSQL tests. The main Postman workflows, including Phase 9, were checked during development.
+The backend build passed and the code was pushed to GitHub. Automated checks passed 164 tests: 40 HTTP/validation tests and 124 PostgreSQL tests. The main Postman workflows, including Phase 9, were checked during development.
 
 ## Before class
 

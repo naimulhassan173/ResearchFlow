@@ -1,5 +1,6 @@
 import {
   Body,
+  Delete,
   Controller,
   Get,
   Param,
@@ -25,6 +26,11 @@ import { OpportunitiesService } from "./opportunities.service";
 @Controller("opportunities")
 export class OpportunitiesController {
   constructor(private readonly opportunities: OpportunitiesService) {}
+  @Delete(":id")
+  @Roles(UserRole.SUPERVISOR)
+  remove(@CurrentUser() a: AuthUser, @Param("id", ParseUUIDPipe) id: string) {
+    return this.opportunities.remove(a, id);
+  }
   @Post()
   @Roles(UserRole.SUPERVISOR)
   create(@CurrentUser() actor: AuthUser, @Body() dto: CreateOpportunityDto) {

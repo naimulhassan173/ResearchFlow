@@ -62,6 +62,12 @@ const userRepo = {
       Object.entries(where).every(([key, val]) => user[key] === val),
     ) ?? null,
   findOne: async ({ where }) => userRepo.findOneBy(where),
+  update: async (where, changes) => {
+    const user = await userRepo.findOneBy(where);
+    if (!user) return { affected: 0 };
+    Object.assign(user, changes);
+    return { affected: 1 };
+  },
   increment: async ({ id }, field, count) => {
     users.get(id)[field] += count;
   },
@@ -223,7 +229,10 @@ test("registration hashes passwords and returns no hash", async () => {
   assert.equal("passwordHash" in res.body.user, false);
   assert.equal("password" in res.body.user, false);
   assert.ok(
-    await argon2.verify(users.get(res.body.user.id).passwordHash, "Strong@123"),
+    await require("bcryptjs").compare(
+      "Strong@123",
+      users.get(res.body.user.id).passwordHash,
+    ),
   );
   assert.ok(profiles.has(res.body.user.id));
 });
@@ -503,4 +512,35 @@ test("logout revokes existing tokens", async () => {
     .get("/auth/me")
     .set("Authorization", bearer(student.token))
     .expect(401);
+});
+
+test("legacy login verifies Argon2 and upgrades a correct password to bcrypt", async () => {
+  const registered = await api
+    .post("/accounts")
+    .send(account("Legacy Account", "legacy.extra@example.com"))
+    .expect(201);
+  const user = users.get(registered.body.user.id);
+  user.passwordHash = await argon2.hash("Strong@123");
+  const original = user.passwordHash;
+  await api
+    .post("/auth/login")
+    .send({ email: user.email, password: "Wrong@12345" })
+    .expect(401);
+  assert.equal(user.passwordHash, original);
+  await api
+    .post("/auth/login")
+    .send({ email: user.email, password: "Strong@123" })
+    .expect(200);
+  assert.match(user.passwordHash, /^\$2[aby]\$12\$/);
+});
+test("new passwords exceeding 72 bytes are rejected without creating accounts", async () => {
+  const count = users.size;
+  await api
+    .post("/accounts")
+    .send({
+      ...account("Long Password", "long.extra@example.com"),
+      password: "Aa1!" + "x".repeat(69),
+    })
+    .expect(400);
+  assert.equal(users.size, count);
 });

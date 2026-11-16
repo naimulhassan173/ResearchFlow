@@ -34,6 +34,10 @@ export class GroupsController {
   create(@CurrentUser() actor: AuthUser, @Body() dto: CreateGroupDto) {
     return this.groups.create(actor, dto);
   }
+  @Get()
+  list(@Query() q: GroupPaginationDto) {
+    return this.groups.list(q);
+  }
   @Get("mine")
   @Roles(UserRole.STUDENT)
   mine(@CurrentUser() actor: AuthUser) {

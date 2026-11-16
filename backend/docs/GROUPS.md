@@ -22,6 +22,7 @@ All group endpoints require authentication. Mutations require the student role; 
 | Method | Path | Who and purpose |
 | --- | --- | --- |
 | POST | /groups | Student without an active group creates one |
+| GET | /groups | Paginated active group summaries |
 | GET | /groups/mine | Student reads their active group or null |
 | GET | /groups/:groupId | Any authenticated user reads the public group summary |
 | PATCH | /groups/:groupId | Leader edits name/description |

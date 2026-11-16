@@ -19,11 +19,14 @@ for (const file of [
   "test/opportunities.postgres.test.cjs",
   "test/selection.postgres.test.cjs",
   "test/submissions.postgres.test.cjs",
+  "test/rubric.postgres.test.cjs",
 ]) {
   const result = spawnSync(
     process.execPath,
     [
       "--test",
+      "-r",
+      "./scripts/test-network.cjs",
       "--test-concurrency=1",
       "-r",
       "ts-node/register/transpile-only",

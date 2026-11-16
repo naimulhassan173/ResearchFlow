@@ -94,7 +94,7 @@ test("eleven migrations create all current workflow tables and password hashes",
     "SELECT password_hash FROM users WHERE id = $1",
     [student.id],
   );
-  assert.ok(await argon2.verify(row.password_hash, password));
+  assert.ok(await require("bcryptjs").compare(password, row.password_hash));
 });
 test("real profile pagination joins and explicit false filters work", async () => {
   const res = await api

@@ -2,6 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import {
   IsEmail,
+  IsByteLength,
   IsNotEmpty,
   IsString,
   IsStrongPassword,
@@ -29,7 +30,8 @@ export class AccountDto {
   @ApiProperty({ type: String, example: "naimul@example.com", maxLength: 250 })
   email!: string;
   @IsString()
-  @MaxLength(128)
+  @MaxLength(72)
+  @IsByteLength(8, 72)
   @IsStrongPassword({
     minLength: 8,
     minLowercase: 1,
@@ -43,7 +45,8 @@ export class AccountDto {
     format: "password",
     writeOnly: true,
     minLength: 8,
-    maxLength: 128,
+    maxLength: 72,
+    description: "At least 8 characters; at most 72 UTF-8 bytes",
   })
   password!: string;
 }

@@ -33,14 +33,15 @@ Swagger: http://127.0.0.1:5001/api
 
 ## API testing
 
-The postman folder contains nine collections, numbered in workflow order. Test files for uploads are in postman/samples. Collection variables hold local credentials and IDs; login requests save tokens automatically.
+The postman folder contains nine workflow collections and a requirements-check collection, numbered in workflow order. Test files for uploads are in postman/samples. Collection variables hold local credentials and IDs; login requests save tokens automatically.
 
-Automated checks passed 151 tests: 38 HTTP/validation tests and 113 PostgreSQL integration tests. The PostgreSQL suite uses a disposable database because it recreates tables. See the backend guide before running it. The build and main Postman workflows were also checked during development.
+Automated checks passed 164 tests: 40 HTTP/validation tests and 124 PostgreSQL integration tests. The PostgreSQL suite uses a disposable database because it recreates tables. See the backend guide before running it. The build and main Postman workflows were also checked during development.
 
 ## Demo and team notes
 
 - [Demo checklist and limits](backend/docs/FINAL-REVIEW.md)
 - [Team and contribution record](backend/docs/TEAM-CONTRIBUTIONS.md)
+- [Course requirement mapping and remaining submission work](backend/docs/REQUIREMENTS.md)
 - Module guides are in backend/docs.
 
 Local .env settings, database data and uploaded documents are not in GitHub. To move an existing demo, transfer its database backup and matching uploads folder privately. Do not commit passwords or tokens.

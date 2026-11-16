@@ -66,6 +66,10 @@ Registration, login, root and health are public. The other routes need a Bearer 
 | POST | /auth/login | Verify password and issue a JWT |
 | GET | /auth/me | Read the signed-in account |
 | POST | /auth/logout | Revoke all current tokens for this account |
+| GET | /accounts | Coordinator lists accounts with pagination |
+| GET | /accounts/:id | Owner/coordinator reads account |
+| PATCH | /accounts/:id | Owner/coordinator updates name and email |
+| DELETE | /accounts/:id | Coordinator deactivates an unassigned account |
 | PATCH | /accounts/:id/role | Coordinator assigns a role; target must log in again |
 | GET | /profiles | Paginated student/supervisor directory |
 | GET | /profiles/:userId | Read a research profile |
@@ -86,6 +90,10 @@ Skip registration or creation requests when reusing existing data. Expected 400,
 
 Module guides cover [groups](docs/GROUPS.md), [projects](docs/PROJECTS.md), [opportunities](docs/OPPORTUNITIES.md), [selection](docs/SELECTION.md), [submissions](docs/SUBMISSIONS.md), [milestones](docs/MILESTONES.md), [support](docs/SUPPORT.md) and [dashboards](docs/DASHBOARDS.md).
 
+## Course requirements
+
+See [the requirement mapping](docs/REQUIREMENTS.md). New passwords use bcrypt. Existing Argon2 accounts can log in and upgrade without losing demo data. The extra Requirements Check Postman collection uses separate temporary demo records.
+
 ## Checks
 
 ```powershell
@@ -94,7 +102,7 @@ pnpm.cmd run lint
 pnpm.cmd run build
 ```
 
-The default suite has 38 HTTP/validation tests using repository doubles. It runs without PostgreSQL or Redis. The separate PostgreSQL suite has 113 tests, including migration rollback/reapplication, joins, permissions, concurrent confirmations, private files and progress.
+The default suite has 40 HTTP/validation tests using repository doubles. It runs without PostgreSQL or Redis. The separate PostgreSQL suite has 124 tests, including migration rollback/reapplication, joins, permissions, concurrent confirmations, private files and progress.
 
 The PostgreSQL suite rolls back and recreates domain tables. Use an empty disposable test database, never the demonstration database:
 
@@ -111,7 +119,7 @@ Remove-Item Env:RF_POSTGRES_TEST,Env:DB_HOST,Env:DB_PORT,Env:DB_USER,Env:DB_DATA
 # Also clear DB_PASSWORD from this terminal afterwards.
 ```
 
-The runner rejects normal database names and non-local hosts. The file tests use a temporary upload directory. Both suites passed during development: 151 tests in total.
+The runner rejects normal database names and non-local hosts. The file tests use a temporary upload directory. The suites passed during development: 164 tests in total, including 11 additional course-requirement checks.
 
 ## Project files
 

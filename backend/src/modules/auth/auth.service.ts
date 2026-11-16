@@ -2,7 +2,10 @@ import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { JwtService } from "@nestjs/jwt";
 import { Repository } from "typeorm";
-import * as argon2 from "argon2";
+import {
+  hashPassword,
+  verifyPassword,
+} from "../../common/helpers/password.helper";
 import { User } from "../accounts/entities/user.entity";
 import { LoginDto } from "./dto/login.dto";
 @Injectable()
@@ -22,9 +25,19 @@ export class AuthService {
     if (
       !user ||
       !user.isActive ||
-      !(await argon2.verify(user.passwordHash, dto.password))
+      !(await verifyPassword(user.passwordHash, dto.password))
     ) {
       throw new UnauthorizedException("Invalid email or password");
+    }
+    // Compare-and-set avoids overwriting a concurrent password update.
+    if (
+      user.passwordHash.startsWith("$argon2") &&
+      Buffer.byteLength(dto.password, "utf8") <= 72
+    ) {
+      await this.users.update(
+        { id: user.id, passwordHash: user.passwordHash },
+        { passwordHash: await hashPassword(dto.password) },
+      );
     }
     const accessToken = await this.jwt.signAsync({
       sub: user.id,

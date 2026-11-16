@@ -1,5 +1,6 @@
+import { HttpErrorFilter } from "./common/filters/http-error.filter";
 import { Module } from "@nestjs/common";
-import { APP_GUARD } from "@nestjs/core";
+import { APP_GUARD, APP_FILTER } from "@nestjs/core";
 import { ConfigModule } from "@nestjs/config";
 import { BullModule } from "@nestjs/bull";
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
@@ -52,6 +53,7 @@ import { appConfig } from "./config/app.config";
   controllers: [AppController],
   providers: [
     AppService,
+    { provide: APP_FILTER, useClass: HttpErrorFilter },
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
