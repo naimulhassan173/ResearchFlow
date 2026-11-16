@@ -1,6 +1,6 @@
-# Coordinator support and alternatives
+# Coordinator support
 
-Import the Phase 8 collection and set `coordinatorPassword` privately in its Variables tab to the existing bootstrap account's local password. The generated collection deliberately leaves it blank. Keep the current group, proposal, pairing and milestones intact.
+Import the Phase 8 collection and set `coordinatorPassword` privately in its Variables tab to the existing bootstrap account's local password. This value is blank in the shared collection. Keep the current group, proposal, pairing and milestones intact.
 
 Send requests 01–15 in order. A leader raises a concern, the coordinator reviews the permitted summary and suggests a future research direction, the leader accepts it for consideration, and the coordinator records the resolution. Requests 04/08 return 201, 07 returns 403, 10 returns 409, and all others return 200. No actual proposal or pairing is replaced by this demonstration.
 
@@ -30,5 +30,3 @@ An accepted suggestion does not change the project title, summary, documents, ac
 Cases are limited to group members and coordinators. Supervisors do not automatically see a group's support concerns. The module has no API to force a pairing or consent on a student's behalf. Reasons and resolution history appear in project activity as administrative events; do not place full proposal text in case descriptions.
 
 `modules/support` contains DTOs, case/suggestion entities, controller and service. Migration `1794900000000-CreateCoordinatorSupport.ts` creates both tables and enforces same-project selection links and exactly one suggestion target. Transactions serialize case, suggestion and response transitions with project/group changes.
-
-Practice explaining: “The coordinator helps us choose alternatives. The coordinator suggests, and the group leader decides. Acceptance records our choice, but normal supervisor confirmation and document permission still apply. The case keeps the reason, response and final resolution.”

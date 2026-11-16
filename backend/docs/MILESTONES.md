@@ -1,4 +1,4 @@
-# Milestones and approved progress
+# Milestones
 
 Keep the latest proposal approved and the supervision active. Import the Phase 7 Postman collection and send 01–15 in order. Request 04 checks for an existing plan. On a fresh plan, 05 and 06 create two tasks. Do not repeat task creation on reruns: adding tasks changes the agreed total and therefore the progress denominator.
 
@@ -6,7 +6,7 @@ The confirmed supervisor plans tasks with a title, description, current group-me
 
 Evidence is versioned separately for each milestone. The supervisor uses the existing submission review endpoints to approve it or request revision. A submission awaiting review contributes zero completed milestones. Approval changes that milestone to completed. With one approved out of two planned milestones, progress is 50%. With no plan, percentage is null and state is not_yet_planned.
 
-Request 14 deliberately returns 409 because completed work cannot be rewritten. Other requests return 200, except creation/evidence/review requests 05, 06, 09 and 11 which return 201. Keep the plan and approved evidence for the upcoming dashboard.
+Request 14 deliberately returns 409 because completed work cannot be rewritten. Other requests return 200, except creation/evidence/review requests 05, 06, 09 and 11 which return 201. The dashboard uses the same plan and progress counts.
 
 | Endpoint | Behavior |
 | --- | --- |

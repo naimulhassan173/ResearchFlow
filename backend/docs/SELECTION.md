@@ -1,4 +1,4 @@
-# Applications, mutual supervision and document consent
+# Supervisor selection and access
 
 A student group leader applies to a supervisor or one of that supervisor's opportunities. The supervisor may offer supervision or decline with a reason. An offer reserves no places and grants no document access. The leader confirms the final pairing using literal `shareFullProposal: true`. Alternatively, a supervisor invites a group and the leader confirms directly with the same consent.
 
@@ -13,8 +13,6 @@ Send 01–17 in order. Requests 07 and 10 return 200 with `allowed:false`. Reque
 The optional coordinator folder uses the existing coordinator. Its password is intentionally blank; set your local password privately. Coordinator status alone returns `allowed:false`. The leader must name that user in a grant. Revoking it removes access.
 
 The optional final folder ends the current pairing, verifies that its supervisor permission is gone, then demonstrates a fresh supervisor invitation and renewed leader consent. Ending releases all reserved places and unlocks membership. Do not run it unless you intend to change the demonstration pairing.
-
-On reruns, do not submit another application or repeat an accepted confirmation. Read `/selection/requests?projectId=...` to recover existing state and supervision ID. Duplicate live requests return 409. If a request expired, create a new one. If capacity or skills fail, correct the actual supervisor profile, group profiles or opportunity, then retry the outstanding confirmation. Refresh logins when tokens expire.
 
 ## Routes
 
@@ -34,7 +32,7 @@ On reruns, do not submit another application or repeat an accepted confirmation.
 | GET | /projects/:id/document-access | Signed-in user checks their own effective document permission |
 | GET | /projects/:id/activity | Group, confirmed supervisor or coordinator sees administrative activity |
 
-Request lists and activity are paginated. Response deadlines default to seven days and are configurable through optional `SELECTION_RESPONSE_HOURS` (1–2160). Offers start a fresh response period. Expiration is enforced on reads and decisions without requiring Redis. Replacing an expired request persists its expired state. Notifications and scheduled reminders remain later work.
+Request lists and activity are paginated. Response deadlines default to seven days and are configurable through optional `SELECTION_RESPONSE_HOURS` (1–2160). Offers start a fresh response period. Expiration is enforced on reads and decisions without requiring Redis. Replacing an expired request persists its expired state. Deadline reminders are described in [DASHBOARDS.md](DASHBOARDS.md).
 
 ## Eligibility and change rules
 
@@ -42,7 +40,7 @@ Required opportunity skills are checked against the active group's combined prof
 
 The student's current group must be valid at request creation and confirmation. Only final confirmation reserves places. If a two-person group applies to a post with one place left, confirmation fails. Supervisor capacity is measured across all active pairings. A profile's capacity cannot be cleared or reduced below active reservations. A supervisor with active pairings cannot change role.
 
-While a pairing is active, membership and leadership are locked rather than silently changing capacity or permissions. End the pairing, change membership and obtain fresh confirmation and sharing permission. Title/summary changes during supervision require the later revision workflow; direct draft edits and publication resets are blocked. The system does not yet implement a live membership-change approval process.
+While a pairing is active, membership and leadership are locked rather than silently changing capacity or permissions. End the pairing, change membership and obtain fresh confirmation and sharing permission. During supervision, proposal changes use submission revisions; direct draft edits and publication resets are blocked. The system does not yet implement a live membership-change approval process.
 
 Groups retain their own document rights. External supervisors need both a live pairing and an unrevoked grant linked to it. A coordinator needs a separate named grant and receives no automatic file access. Revoke permission immediately through the grant endpoint. Ending a pairing revokes its supervisor grants; a replacement always needs fresh consent. Separate coordinator grants remain under the leader's explicit control until revoked. Disabled accounts cannot authenticate.
 
@@ -52,6 +50,4 @@ Groups retain their own document rights. External supervisors need both a live p
 
 The service locks participating users in UUID order, then the group and project before modifying requests or pairings. Confirmations sharing a supervisor serialize on that supervisor's user/profile locks. A partial unique index also prevents two active supervisors for the same project. Opportunity reservation updates share its row lock with opportunity edits. The capacity database trigger prevents a profile update from making capacity lower than active reservations. API writes use parameterized SQL through TypeORM's transaction manager.
 
-`assertDocumentAccess` is the effective permission check used by the [Phase 6 private submission and file routes](SUBMISSIONS.md). Activity now also records proposal submissions and version-specific review decisions. Milestone events remain later work.
-
-Practice explaining: “The supervisor first offers. The leader then agrees and explicitly shares documents. We count every group member before reserving places. The database allows one active supervisor per project. Ending the pairing releases places and removes the old supervisor's permission.”
+`assertDocumentAccess` is the effective permission check used by the [Phase 6 private submission and file routes](SUBMISSIONS.md). Activity now also records proposal submissions and version-specific review decisions. Milestone events are also recorded in activity.

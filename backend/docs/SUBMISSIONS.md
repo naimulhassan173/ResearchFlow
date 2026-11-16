@@ -1,4 +1,4 @@
-# Private proposal bundles, revisions and reviews
+# Submissions and reviews
 
 Keep the confirmed Phase 5 pairing active. Supervision agreement and proposal approval are separate: the proposal becomes approved only when the current supervisor reviews a specific submission version and approves it.
 
@@ -6,15 +6,11 @@ Keep the confirmed Phase 5 pairing active. Supervision agreement and proposal ap
 
 Import `postman/ResearchFlow-Phase6-Submissions.postman_collection.json`. Send requests 01–17 in order using your existing sample accounts. Request 04 uses the separate Amrin sample viewer created earlier; that account is an outsider to the demonstration group. Group members retain their own access.
 
-The installer supplies illustrative files in `postman/samples`: Mayesha proposal v1/v2 PDFs, an Amrin dataset CSV and Tahmid feedback CSV. These names are sample data, not real authorship or contribution records.
-
 For request 05, open Body > form-data. `revisionNote` must be Text. Two `files` rows must be File, selecting `Mayesha_Proposal_v1.pdf` and `Amrin_Dataset_v1.csv`. Imported file paths may need selecting again with Postman's file picker. Do not manually set Content-Type; Postman needs to generate the multipart boundary. Request 12 uses a text decision/comments and an optional feedback CSV file. Request 13 selects the v2 PDF. Request 15 uses JSON for a review with no attached files.
 
 Expected: 01–04 return 200; 05 returns 201; 06 returns 200; 07 returns 403; 08–09 return 200; 10 returns 403; 11 returns 200; 12–13 return 201; 14 returns 200; 15 returns 201; 16–17 return 200. The PDF response may appear in Preview or as binary output. Use Postman's download action to save a local demonstration copy.
 
 V1 receives revision-required feedback, v2 is submitted, then v2 is approved. Request 14 shows v1 still has its original files and feedback. Request 16 reports the latest version's proposal status. Leave the approved version and active pairing available for milestone work.
-
-On reruns, use the actual saved version IDs. A version awaiting review prevents another upload. A finalized version cannot receive a second final decision, and an older version cannot be reviewed after a newer one is submitted. Submitting after approval creates another version awaiting its own review; do not do that accidentally while preparing the next milestone demonstration. Refresh expired login tokens.
 
 ## API
 
@@ -40,7 +36,7 @@ Uploads stay in memory until route permission and DTO checks pass. Authorized wr
 
 Version allocation and metadata/review writes serialize on the project inside a database transaction. Normal failures remove newly written files and roll database rows back. A process or machine crash between filesystem writes and database commit can leave an orphan file; filesystem/database storage is not a single atomic storage engine. No automatic cleanup deletes historical attachments. Back up the database and private folder together.
 
-## Files to explain
+## Code
 
 | File | Job |
 | --- | --- |
@@ -53,5 +49,3 @@ Version allocation and metadata/review writes serialize on the project inside a 
 | 1794880000000-CreateSubmissionsAndReviews.ts | Creates tables, version uniqueness and review-file relationships |
 
 Before the first proposal upload, history reports draft. Uploaded versions move through submitted, under_review, revision_required or approved. Every review and its attachments belong to one version. Files are immutable through these APIs: send a new version to revise them. Phase 7 extends this model with [milestone evidence and approved progress](MILESTONES.md). Adding milestoneId to the multipart submission binds evidence to that task; each task has its own version sequence.
-
-Practice saying: “We keep the documents in a private folder. The database stores metadata and version numbers. Every download checks the current permission. V2 does not overwrite V1, and the supervisor's review belongs to the exact version reviewed. Supervision confirmation alone never approves the proposal.”

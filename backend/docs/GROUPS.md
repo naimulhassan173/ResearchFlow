@@ -1,12 +1,6 @@
-# Research groups: use and explain
+# Research groups
 
-A student creates a group and automatically becomes its leader and first member. The leader invites another student. That student joins only after accepting the invitation with their own login token. Each student can belong to at most one active group.
-
-## Install this update on the existing PC
-
-Stop the backend with Ctrl+C, run the prepared installer, then run `pnpm.cmd run migration:run` in the backend folder. This adds the fourth migration. Start the backend with `pnpm.cmd run start:dev`.
-
-Import `postman/ResearchFlow-Phase2-Groups.postman_collection.json` as a separate collection. Your Phase 1 requests remain available.
+A student creates a group and automatically becomes its leader and first member. The leader invites another student. That student joins only after accepting the invitation with their own login token. Each student can belong to only one active group.
 
 ## Postman walkthrough
 
@@ -20,8 +14,6 @@ Import `postman/ResearchFlow-Phase2-Groups.postman_collection.json` as a separat
 8. Send 14 for invitation history. Save screenshots of useful responses without exposing tokens or passwords.
 
 The optional folder demonstrates leadership transfer, leaving and archiving. Use it only when ready to release this demo group's memberships. After 15, the member is the new leader; 16 uses the former leader's token, and 17 uses the new leader's token. Archive preserves history and releases active memberships. Once the group has an active project, archive that project first or group archive returns 409. Keep the demonstration group for the next feature while developing.
-
-On reruns, skip invitations already accepted and creation of accounts/groups that already exist. To start a new demonstration after cleanup, log both students in again, skip 04, and create a new group with 03. If either student already belongs to another group, resolve that membership first. Repeated acceptance returns 409. For a pending duplicate, read 07 or 14 to find its ID instead of creating another. Tokens expire: repeat 01 and 05 to refresh them.
 
 ## Endpoints
 
@@ -63,11 +55,3 @@ Invitation lists accept `page` and `limit` (1 to 100). Invitations expire after 
 A transaction makes related changes succeed together or roll back together. User rows are locked in a consistent order before changing membership. A partial unique index on active `group_members.user_id` also blocks a student from joining two groups, including when acceptances arrive simultaneously. A deferred foreign key ensures a group's leader has a membership record. Leaving and archiving retain history rather than deleting it.
 
 Public summaries include names and user IDs, but no email addresses, password hashes or private invitation history. Group invitations here are membership invitations, not supervisor selection invitations.
-
-## Explain it to sir
-
-“I create a group as a student. The creator becomes leader. The leader sends an invitation, and the other student must accept it. The service checks who is making the request. PostgreSQL prevents two active memberships for the same student. Only the leader can edit the group or transfer leadership.”
-
-Practice showing one successful join, one forbidden edit and one rejected second group. Then point to the controller, DTO, service and migration and explain their jobs in your own words.
-
-Phase 3 adds [projects and limited summaries](PROJECTS.md). Phase 5 adds [confirmation, capacity and named consent](SELECTION.md). Confirmation activates `membership_locked`; clients cannot toggle it directly. End the pairing before membership changes, then obtain fresh capacity checks and consent through a new confirmation. Actual protected file delivery remains the next phase.

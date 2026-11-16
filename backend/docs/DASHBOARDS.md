@@ -1,6 +1,6 @@
-# Role dashboards and private in-app alerts
+# Dashboards and notifications
 
-These are backend JSON endpoints for the frontend to consume next term. Import `ResearchFlow-Phase9-Dashboards.postman_collection.json`, set the existing coordinator password privately in Variables, and send 01–15. All return 200 except 13, which intentionally returns 404 when the supervisor tries to mark a student's private notice read. Request 07 saves its notification ID automatically. If an imported variable has a local empty override, copy the notice's ID into `notificationId`.
+These endpoints return JSON for the frontend planned next term. Import `ResearchFlow-Phase9-Dashboards.postman_collection.json`, set the existing coordinator password privately in Variables, and send 01–15. All return 200 except 13, which intentionally returns 404 when the supervisor tries to mark a student's private notice read. Request 07 saves its notification ID automatically. If an imported variable has a local empty override, copy the notice's ID into `notificationId`.
 
 Student dashboards show the current group's projects, approved milestone progress, group invitations, selection responses, assigned work and support responses due. Supervisor dashboards show active projects, total and reserved capacity, pending applications, open opportunities and reviews for which the supervisor still has document permission. Coordinator dashboards show administrative project progress, account totals, active pairings, reserved student places, unresolved cases and unanswered selection counts. Dashboards never include file storage names, proposal contents or review comments.
 
@@ -26,5 +26,3 @@ Selection responses and unfinished milestone deadlines within 24 hours or alread
 Read state is per recipient. Marking one user's inbox read does not change another's inbox. Unknown/foreign IDs are rejected. Generic historical notices may remain after a relationship ends, but accessing the corresponding project, case or file always checks current authorization again.
 
 The eleventh migration creates notifications, indexes and event/invitation triggers. `modules/dashboard` contains role queries, private inbox controls and deadline refresh. Database event triggers keep alert creation in the same transaction as the underlying activity; rolled-back business actions do not leave alert rows.
-
-Practice explaining: “The dashboard summarizes what each role needs to do. Students see their group, supervisors see their confirmed projects, and coordinators see administrative progress. Notifications are private per user. Reading a notice does not bypass document permission, and progress still counts only approved milestones.”

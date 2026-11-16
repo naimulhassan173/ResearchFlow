@@ -1,6 +1,6 @@
-# Projects and approved summaries
+# Projects
 
-This stage connects a group's research topic to a limited proposal summary. The current group leader creates and manages the project. A draft is visible to current group members only. The leader must explicitly publish it before other signed-in participants can browse its title, tags and short summary. Publication does not confirm supervision or approve a proposal.
+The leader creates a project for the group. It starts as a private draft. Publishing makes the title, research tags and short summary visible to signed-in users. Publishing does not confirm supervision or share the full proposal.
 
 ## Use the Postman collection
 
@@ -26,9 +26,9 @@ For repeated demonstrations, an existing published project will make 07 return 2
 
 All endpoints require authentication. A signed-in coordinator has no special draft access. Outsider requests for draft IDs return 404 rather than disclosing the draft. Unknown fields, including fullProposal, status, group reassignment and publication timestamps, are rejected. Names are 3–200 characters, summaries 1–1500, and tags 1–20 nonblank lowercase names using the existing research-interest vocabulary. Pagination is bounded at 100.
 
-Implementation choice: a group has at most one unarchived project at a time. Archive the old project to start a replacement. A group with an active project cannot be archived until the project is archived first. Leadership transfer immediately transfers project management, while a member leaving loses draft access. An internal supervision-lock check prevents project archival once later supervision work sets that lock.
+Implementation choice: a group has at most one unarchived project at a time. Archive the old project to start a replacement. A group with an active project cannot be archived until the project is archived first. Leadership transfer immediately transfers project management, while a member leaving loses draft access. An internal supervision-lock check prevents project archival while supervision is active.
 
-## Files to explain
+## Code
 
 | File | Responsibility |
 | --- | --- |
@@ -40,7 +40,3 @@ Implementation choice: a group has at most one unarchived project at a time. Arc
 | test/projects.postgres.test.cjs | PostgreSQL-backed privacy, permission, query and lifecycle tests |
 
 The migration creates `projects` and `project_research_interests`. It reuses `research_interests`, rather than introducing a second tag vocabulary. Related changes run in transactions. User/group locks coordinate project creation with membership, role and group-archive changes. The database also rejects two active projects for one group and inconsistent status/publication/archive fields.
-
-Explain this in your own words: “A project is our group's research topic. It starts as a draft. The leader publishes only the short summary, so a supervisor can understand the idea without receiving the full proposal. Other users cannot edit it. Publishing a summary is separate from accepting a supervisor and granting document access.”
-
-Phase 4 adds [supervisor opportunities](OPPORTUNITIES.md), and Phase 5 adds [confirmation, capacity accounting and named consent](SELECTION.md). Full proposals, protected files and proposal reviews remain later stages. This module deliberately accepts only summary fields; it does not store or expose full proposal documents. Tests use Tahmid, Mayesha and Amrin as sample names; these fixtures do not assign implementation credit. Active supervision blocks direct project edits and publication resets until the versioned revision workflow is available.
